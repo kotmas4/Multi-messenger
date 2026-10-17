@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Messenger Hub - Max & Telegram</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Font Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        .chat-bubble-received {
+            border-bottom-left-radius: 2px;
+        }
+        .chat-bubble-sent {
+            border-bottom-right-radius: 2px;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 h-screen flex flex-col overflow-hidden">
+
+    <!-- Top Navigation Bar -->
+    <header class="bg-slate-800 border-b border-slate-700/60 px-4 py-2.5 flex items-center justify-between shrink-0 shadow-md">
+        <div class="flex items-center space-x-3">
+            <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center font-bold text-lg text-white shadow-lg shadow-indigo-500/30">
+                <i class="fa-solid fa-layer-group"></i>
+            </div>
+            <span class="font-semibold text-lg tracking-tight hidden sm:inline">Messenger Hub</span>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <nav class="flex items-center bg-slate-900/80 p-1 rounded-xl border border-slate-700/50">
+            <button id="tab-max-btn" onclick="switchTab('max')" 
+                class="flex items-center space-x-2 px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 text-slate-400 hover:text-white">
+                <div class="w-2.5 h-2.5 rounded-full bg-orange-500"></div>
+                <span>Max</span>
+                <span id="max-badge" class="bg-orange-500/20 text-orange-400 text-xs px-1.5 py-0.5 rounded-full font-semibold ml-1">3</span>
+            </button>
+            <button id="tab-tg-btn" onclick="switchTab('telegram')" 
+                class="flex items-center space-x-2 px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 text-slate-400 hover:text-white">
+                <div class="w-2.5 h-2.5 rounded-full bg-sky-400"></div>
+                <span>Telegram</span>
+                <span id="tg-badge" class="bg-sky-400/20 text-sky-300 text-xs px-1.5 py-0.5 rounded-full font-semibold ml-1">5</span>
+            </button>
+        </nav>
+
+        <!-- Quick Launch & Actions -->
+        <div class="flex items-center space-x-2">
+            <button onclick="openExternal()" class="hidden md:flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-slate-700/60 hover:bg-slate-700 text-xs font-medium text-slate-200 transition border border-slate-600/40" title="Открыть настоящий сайт в новой вкладке">
+                <i class="fa-solid fa-arrow-up-right-from-square text-slate-400"></i>
+                <span id="external-btn-text">Открыть Max</span>
+            </button>
+            <button onclick="toggleSettingsModal()" class="p-2 rounded-lg bg-slate-700/60 hover:bg-slate-700 text-slate-300 hover:text-white transition">
+                <i class="fa-solid fa-gear"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 relative overflow-hidden bg-slate-950">
+
+        <!-- MAX WEB MESSENGER CONTAINER -->
+        <div id="view-max" class="absolute inset-0 flex flex-col md:flex-row transition-opacity duration-300 opacity-100 z-10">
+            <!-- Sidebar: Chats List -->
+            <div class="w-full md:w-80 lg:w-96 bg-slate-900 border-r border-slate-800 flex flex-col shrink-0">
+                <!-- Profile & Search -->
+                <div class="p-3 border-b border-slate-800/80 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-orange-600 to-amber-500 flex items-center justify-center text-white font-bold text-lg shadow-md shadow-orange-500/20">
+                                M
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-sm leading-tight text-white">Max Web</h3>
+                                <div class="flex items-center space-x-1.5 text-xs text-emerald-400">
+                                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                                    <span>В сети</span>
+                                </div>
+                            </div>
+                        </div>
+                        <a href="https://web.max.ru" target="_blank" class="p-2 text-slate-400 hover:text-orange-400 transition" title="Перейти на web.max.ru">
+                            <i class="fa-solid fa-globe"></i>
+                        </a>
+                    </div>
+                    <!-- Search Input -->
+                    <div class="relative">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-500 text-xs"></i>
+                        <input type="text" placeholder="Поиск в Max..." class="w-full bg-slate-800/80 text-xs text-slate-200 placeholder-slate-500 rounded-xl pl-9 pr-3 py-2 border border-slate-700/50 focus:outline-none focus:border-orange-500 transition">
+                    </div>
+                </div>
+
+                <!-- Chat Tabs/Filter -->
+                <div class="flex border-b border-slate-800 text-xs font-medium text-slate-400">
+                    <button class="flex-1 py-2.5 text-center text-orange-400 border-b-2 border-orange-500">Все</button>
+                    <button class="flex-1 py-2.5 text-center hover:text-slate-200">Личные</button>
+                    <button class="flex-1 py-2.5 text-center hover:text-slate-200">Группы</button>
+                </div>
+
+                <!-- Chat List -->
+                <div class="flex-1 overflow-y-auto divide-y divide-slate-800/40" id="max-chats-list">
+                    <!-- Dynamic chats populated by JS -->
+                </div>
+            </div>
+
+            <!-- Main Chat View -->
+            <div class="flex-1 flex flex-col bg-slate-950 relative">
+                <!-- Chat Header -->
+                <div class="h-16 border-b border-slate-800 px-4 flex items-center justify-between bg-slate-900/40">
+                    <div class="flex items-center space-x-3">
+                        <div id="max-active-avatar" class="w-10 h-10 rounded-full bg-orange-600 flex items-center justify-center font-semibold text-white">
+                            А
+                        </div>
+                        <div>
+                            <h2 id="max-active-title" class="font-semibold text-sm text-slate-100">Алексей Техподдержка</h2>
+                            <p id="max-active-subtitle" class="text-xs text-slate-400">был(а) недавно</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-3 text-slate-400">
+                        <button class="hover:text-slate-200 p-2"><i class="fa-solid fa-phone"></i></button>
+                        <button class="hover:text-slate-200 p-2"><i class="fa-solid fa-ellipsis-vertical"></i></button>
+                    </div>
+                </div>
+
+                <!-- Messages Container -->
+                <div id="max-messages-container" class="flex-1 overflow-y-auto p-4 space-y-3 bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:16px_16px]">
+                    <!-- Messages populated by JS -->
+                </div>
+
+                <!-- Message Input -->
+                <div class="p-3 border-t border-slate-800/80 bg-slate-900/60">
+                    <form onsubmit="sendMessage(event, 'max')" class="flex items-center space-x-2">
+                        <button type="button" class="text-slate-400 hover:text-slate-200 p-2"><i class="fa-paperclip text-base"></i></button>
+                        <input id="max-input" type="text" placeholder="Написать сообщение в Max..." class="flex-1 bg-slate-800/90 text-sm text-slate-100 placeholder-slate-500 rounded-xl px-4 py-2.5 border border-slate-700/60 focus:outline-none focus:border-orange-500 transition">
+                        <button type="submit" class="bg-orange-500 hover:bg-orange-600 text-white rounded-xl px-4 py-2.5 text-sm font-medium transition shadow-lg shadow-orange-500/20">
+                            <i class="fa-solid fa-paper-plane"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- TELEGRAM WEB CONTAINER -->
+        <div id="view-telegram" class="absolute inset-0 flex flex-col md:flex-row transition-opacity duration-300 opacity-0 pointer-events-none z-0">
+            <!-- Sidebar: Chats List -->
+            <div class="w-full md:w-80 lg:w-96 bg-slate-900 border-r border-slate-800 flex flex-col shrink-0">
+                <!-- Profile & Search -->
+                <div class="p-3 border-b border-slate-800/80 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 rounded-full bg-sky-500 flex items-center justify-center text-white font-bold text-lg shadow-md shadow-sky-500/20">
+                                <i class="fa-paper-plane text-sm"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-sm leading-tight text-white">Telegram Web</h3>
+                                <div class="flex items-center space-x-1.5 text-xs text-sky-400">
+                                    <span class="w-2 h-2 rounded-full bg-sky-400 animate-ping"></span>
+                                    <span>Подключено</span>
+                                </div>
+                            </div>
+                        </div>
+                        <a href="https://web.telegram.org" target="_blank" class="p-2 text-slate-400 hover:text-sky-400 transition" title="Перейти на web.telegram.org">
+                            <i class="fa-solid fa-globe"></i>
+                        </a>
+                    </div>
+                    <!-- Search Input -->
+                    <div class="relative">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-500 text-xs"></i>
+                        <input type="text" placeholder="Поиск в Telegram..." class="w-full bg-slate-800/80 text-xs text-slate-200 placeholder-slate-500 rounded-xl pl-9 pr-3 py-2 border border-slate-700/50 focus:outline-none focus:border-sky-500 transition">
+                    </div>
+                </div>
+
+                <!-- Chat List -->
+                <div class="flex-1 overflow-y-auto divide-y divide-slate-800/40" id="tg-chats-list">
+                    <!-- Dynamic TG chats populated by JS -->
+                </div>
+            </div>
+
+            <!-- Main Chat View -->
+            <div class="flex-1 flex flex-col bg-slate-950 relative">
+                <!-- Chat Header -->
+                <div class="h-16 border-b border-slate-800 px-4 flex items-center justify-between bg-slate-900/40">
+                    <div class="flex items-center space-x-3">
+                        <div id="tg-active-avatar" class="w-10 h-10 rounded-full bg-sky-600 flex items-center justify-center font-semibold text-white">
+                            Т
+                        </div>
+                        <div>
+                            <h2 id="tg-active-title" class="font-semibold text-sm text-slate-100">Telegram News</h2>
+                            <p id="tg-active-subtitle" class="text-xs text-slate-400">1.2M подписчиков</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-3 text-slate-400">
+                        <button class="hover:text-slate-200 p-2"><i class="fa-solid fa-magnifying-glass"></i></button>
+                        <button class="hover:text-slate-200 p-2"><i class="fa-solid fa-ellipsis-vertical"></i></button>
+                    </div>
+                </div>
+
+                <!-- Messages Container -->
+                <div id="tg-messages-container" class="flex-1 overflow-y-auto p-4 space-y-3 bg-[radial-gradient(#0f172a_1px,transparent_1px)] [background-size:16px_16px]">
+                    <!-- Messages populated by JS -->
+                </div>
+
+                <!-- Message Input -->
+                <div class="p-3 border-t border-slate-800/80 bg-slate-900/60">
+                    <form onsubmit="sendMessage(event, 'telegram')" class="flex items-center space-x-2">
+                        <button type="button" class="text-slate-400 hover:text-slate-200 p-2"><i class="fa-regular fa-face-smile text-base"></i></button>
+                        <input id="tg-input" type="text" placeholder="Написать сообщение в Telegram..." class="flex-1 bg-slate-800/90 text-sm text-slate-100 placeholder-slate-500 rounded-xl px-4 py-2.5 border border-slate-700/60 focus:outline-none focus:border-sky-500 transition">
+                        <button type="submit" class="bg-sky-500 hover:bg-sky-600 text-white rounded-xl px-4 py-2.5 text-sm font-medium transition shadow-lg shadow-sky-500/20">
+                            <i class="fa-solid fa-paper-plane"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Settings & Information Modal -->
+    <div id="settings-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden opacity-0 transition-opacity duration-200">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl relative">
+            <button onclick="toggleSettingsModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white p-1">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            
+            <div class="flex items-center space-x-3 mb-5">
+                <div class="w-10 h-10 rounded-xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-sliders"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-lg text-white">Настройки Дашборда</h3>
+                    <p class="text-xs text-slate-400">Управление веб-приложениями</p>
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <div class="bg-slate-800/60 p-3 rounded-xl border border-slate-700/50">
+                    <h4 class="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Почему Mock Web View?</h4>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        Популярные сервисы (Telegram, Max) запрещают прямую интеграцию своего сайта через <code class="bg-slate-900 px-1 rounded text-orange-400">iframe</code> по соображениям безопасности (X-Frame-Options).
+                    </p>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-xs font-medium text-slate-300">Быстрый переход на оригинальные сервисы:</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <a href="https://web.max.ru" target="_blank" class="flex items-center justify-center space-x-2 bg-orange-600/20 hover:bg-orange-600/30 text-orange-400 border border-orange-500/30 py-2 rounded-xl text-xs font-semibold transition">
+                            <span>web.max.ru</span>
+                            <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                        </a>
+                        <a href="https://web.telegram.org" target="_blank" class="flex items-center justify-center space-x-2 bg-sky-600/20 hover:bg-sky-600/30 text-sky-400 border border-sky-500/30 py-2 rounded-xl text-xs font-semibold transition">
+                            <span>web.telegram.org</span>
+                            <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="pt-2 border-t border-slate-800 flex justify-between items-center text-xs text-slate-500">
+                    <span>Статус системы: <span class="text-emerald-400">Активно</span></span>
+                    <button onclick="clearDemoData()" class="text-red-400 hover:underline">Сбросить чаты</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application JavaScript Logic -->
+    <script>
+        // App State
+        let currentTab = 'max';
+
+        // Mock Chat Data
+        const chatsData = {
+            max: [
+                {
+                    id: 1,
+                    title: 'Алексей (Техподдержка)',
+                    subtitle: 'был(а) недавно',
+                    avatar: 'А',
+                    color: 'bg-orange-600',
+                    lastMsg: 'Здравствуйте! Чем я могу вам помочь?',
+                    time: '14:20',
+                    unread: 2,
+                    messages: [
+                        { text: 'Приветствую! Добро пожаловать в веб-интерфейс Max.', time: '14:18', type: 'received' },
+                        { text: 'Здравствуйте! Чем я могу вам помочь?', time: '14:20', type: 'received' }
+                    ]
+                },
+                {
+                    id: 2,
+                    title: 'Проектная команда',
+                    subtitle: '4 участника',
+                    avatar: 'П',
+                    color: 'bg-emerald-600',
+                    lastMsg: 'Макет обновлен, проверьте файлы',
+                    time: '12:05',
+                    unread: 1,
+                    messages: [
+                        { text: 'Макет обновлен, проверьте файлы', time: '12:05', type: 'received' }
+                    ]
+                },
+                {
+                    id: 3,
+                    title: 'Иван Сергеев',
+                    subtitle: 'в сети',
+                    avatar: 'И',
+                    color: 'bg-purple-600',
+                    lastMsg: 'Договорились, на связи!',
+                    time: 'Вчера',
+                    unread: 0,
+                    messages: [
+                        { text: 'Созвонимся завтра в 10:00?', time: 'Вчера', type: 'sent' },
+                        { text: 'Договорились, на связи!', time: 'Вчера', type: 'received' }
+                    ]
+                }
+            ],
+            telegram: [
+                {
+                    id: 101,
+                    title: 'Telegram News',
+                    subtitle: '1.2M подписчиков',
+                    avatar: 'Т',
+                    color: 'bg-sky-600',
+                    lastMsg: 'Встречайте обновление приложения Telegram Web!',
+                    time: '15:45',
+                    unread: 4,
+                    messages: [
+                        { text: '🚀 Вышло крупное обновление веб-версии Telegram!', time: '15:40', type: 'received' },
+                        { text: 'Встречайте обновление приложения Telegram Web!', time: '15:45', type: 'received' }
+                    ]
+                },
+                {
+                    id: 102,
+                    title: 'Дмитрий (Разработка)',
+                    subtitle: 'в сети',
+                    avatar: 'Д',
+                    color: 'bg-indigo-600',
+                    lastMsg: 'Код залил на Github, тестируй',
+                    time: '13:10',
+                    unread: 1,
+                    messages: [
+                        { text: 'Привет, готов новый билд?', time: '13:00', type: 'sent' },
+                        { text: 'Код залил на Github, тестируй', time: '13:10', type: 'received' }
+                    ]
+                },
+                {
+                    id: 103,
+                    title: 'Избранное',
+                    subtitle: 'Сохраненные сообщения',
+                    avatar: '★',
+                    color: 'bg-amber-500',
+                    lastMsg: 'Ссылка: https://web.telegram.org',
+                    time: '10:00',
+                    unread: 0,
+                    messages: [
+                        { text: 'Ссылка: https://web.telegram.org', time: '10:00', type: 'sent' }
+                    ]
+                }
+            ]
+        };
+
+        let activeMaxChatId = 1;
+        let activeTgChatId = 101;
+
+        // Initialize App on DOM Load
+        document.addEventListener('DOMContentLoaded', () => {
+            renderChatList('max');
+            renderChatList('telegram');
+            renderMessages('max');
+            renderMessages('telegram');
+            switchTab('max');
+        });
+
+        // Tab Switching Logic
+        function switchTab(tab) {
+            currentTab = tab;
+            const maxView = document.getElementById('view-max');
+            const tgView = document.getElementById('view-telegram');
+            const maxBtn = document.getElementById('tab-max-btn');
+            const tgBtn = document.getElementById('tab-tg-btn');
+            const extBtnText = document.getElementById('external-btn-text');
+
+            if (tab === 'max') {
+                maxView.classList.remove('opacity-0', 'pointer-events-none', 'z-0');
+                maxView.classList.add('opacity-100', 'z-10');
+                tgView.classList.add('opacity-0', 'pointer-events-none', 'z-0');
+                tgView.classList.remove('opacity-100', 'z-10');
+
+                maxBtn.className = "flex items-center space-x-2 px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 bg-orange-500/20 text-orange-400 border border-orange-500/30 shadow-sm";
+                tgBtn.className = "flex items-center space-x-2 px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 text-slate-400 hover:text-white";
+
+                extBtnText.innerText = "Открыть Max";
+            } else {
+                tgView.classList.remove('opacity-0', 'pointer-events-none', 'z-0');
+                tgView.classList.add('opacity-100', 'z-10');
+                maxView.classList.add('opacity-0', 'pointer-events-none', 'z-0');
+                maxView.classList.remove('opacity-100', 'z-10');
+
+                tgBtn.className = "flex items-center space-x-2 px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 bg-sky-500/20 text-sky-300 border border-sky-500/30 shadow-sm";
+                maxBtn.className = "flex items-center space-x-2 px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 text-slate-400 hover:text-white";
+
+                extBtnText.innerText = "Открыть Telegram";
+            }
+        }
+
+        // Render Chat Sidebar Items
+        function renderChatList(service) {
+            const container = document.getElementById(`${service === 'max' ? 'max' : 'tg'}-chats-list`);
+            const activeId = service === 'max' ? activeMaxChatId : activeTgChatId;
+            const data = chatsData[service];
+
+            container.innerHTML = data.map(chat => `
+                <div onclick="selectChat('${service}', ${chat.id})" 
+                    class="p-3 flex items-center space-x-3 cursor-pointer transition ${chat.id === activeId ? 'bg-slate-800/80 border-l-4 ' + (service === 'max' ? 'border-orange-500' : 'border-sky-500') : 'hover:bg-slate-800/40'}">
+                    <div class="w-11 h-11 rounded-full ${chat.color} flex items-center justify-center font-bold text-white shrink-0 shadow-sm">
+                        ${chat.avatar}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex justify-between items-baseline mb-1">
+                            <h4 class="text-xs font-semibold text-slate-100 truncate">${chat.title}</h4>
+                            <span class="text-[10px] text-slate-500 ml-1">${chat.time}</span>
+                        </div>
+                        <p class="text-xs text-slate-400 truncate">${chat.lastMsg}</p>
+                    </div>
+                    ${chat.unread > 0 ? `
+                        <div class="w-4 h-4 rounded-full ${service === 'max' ? 'bg-orange-500' : 'bg-sky-500'} text-[10px] font-bold text-white flex items-center justify-center shrink-0">
+                            ${chat.unread}
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
+        }
+
+        // Select Active Chat
+        function selectChat(service, id) {
+            if (service === 'max') {
+                activeMaxChatId = id;
+            } else {
+                activeTgChatId = id;
+            }
+
+            // Clear unread badge for selected chat
+            const chat = chatsData[service].find(c => c.id === id);
+            if (chat) chat.unread = 0;
+
+            renderChatList(service);
+            renderMessages(service);
+            updateBadges();
+        }
+
+        // Render Chat Messages
+        function renderMessages(service) {
+            const activeId = service === 'max' ? activeMaxChatId : activeTgChatId;
+            const chat = chatsData[service].find(c => c.id === activeId);
+            const container = document.getElementById(`${service === 'max' ? 'max' : 'tg'}-messages-container`);
+
+            // Update Header Title & Subtitle
+            document.getElementById(`${service === 'max' ? 'max' : 'tg'}-active-title`).innerText = chat.title;
+            document.getElementById(`${service === 'max' ? 'max' : 'tg'}-active-subtitle`).innerText = chat.subtitle;
+            
+            const avatarEl = document.getElementById(`${service === 'max' ? 'max' : 'tg'}-active-avatar`);
+            avatarEl.innerText = chat.avatar;
+            avatarEl.className = `w-10 h-10 rounded-full ${chat.color} flex items-center justify-center font-semibold text-white`;
+
+            // Render Messages HTML
+            container.innerHTML = chat.messages.map(msg => `
+                <div class="flex ${msg.type === 'sent' ? 'justify-end' : 'justify-start'}">
+                    <div class="max-w-[75%] rounded-2xl px-4 py-2.5 shadow-md ${
+                        msg.type === 'sent' 
+                            ? (service === 'max' ? 'bg-orange-600 text-white chat-bubble-sent' : 'bg-sky-600 text-white chat-bubble-sent')
+                            : 'bg-slate-800 text-slate-100 border border-slate-700/50 chat-bubble-received'
+                    }">
+                        <p class="text-xs leading-relaxed">${msg.text}</p>
+                        <span class="block text-[9px] text-right mt-1 ${msg.type === 'sent' ? 'text-white/70' : 'text-slate-400'}">${msg.time}</span>
+                    </div>
+                </div>
+            `).join('');
+
+            // Auto-scroll to bottom
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // Send New Message Function
+        function sendMessage(e, service) {
+            e.preventDefault();
+            const inputEl = document.getElementById(`${service === 'max' ? 'max' : 'tg'}-input`);
+            const text = inputEl.value.trim();
+
+            if (!text) return;
+
+            const activeId = service === 'max' ? activeMaxChatId : activeTgChatId;
+            const chat = chatsData[service].find(c => c.id === activeId);
+
+            const currentTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+            // Push User Message
+            chat.messages.push({
+                text: text,
+                time: currentTime,
+                type: 'sent'
+            });
+            chat.lastMsg = text;
+            chat.time = currentTime;
+
+            inputEl.value = '';
+            renderMessages(service);
+            renderChatList(service);
+
+            // Simulated AI/Bot Reply after 1 second
+            setTimeout(() => {
+                const autoReplies = [
+                    'Сообщение получено в веб-версии!',
+                    'Отличная работа с веб-приложением 👍',
+                    'Принято! Будем на связи.',
+                    'Привет! Это авто-ответ демо-режима.'
+                ];
+                const randomReply = autoReplies[Math.floor(Math.random() * autoReplies.length)];
+
+                chat.messages.push({
+                    text: randomReply,
+                    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                    type: 'received'
+                });
+                chat.lastMsg = randomReply;
+                
+                renderMessages(service);
+                renderChatList(service);
+            }, 1000);
+        }
+
+        // Update Total Unread Badges
+        function updateBadges() {
+            const maxTotal = chatsData.max.reduce((acc, c) => acc + c.unread, 0);
+            const tgTotal = chatsData.telegram.reduce((acc, c) => acc + c.unread, 0);
+
+            document.getElementById('max-badge').innerText = maxTotal;
+            document.getElementById('tg-badge').innerText = tgTotal;
+        }
+
+        // Open External Links
+        function openExternal() {
+            if (currentTab === 'max') {
+                window.open('https://web.max.ru', '_blank');
+            } else {
+                window.open('https://web.telegram.org', '_blank');
+            }
+        }
+
+        // Modal Controls
+        function toggleSettingsModal() {
+            const modal = document.getElementById('settings-modal');
+            if (modal.classList.contains('hidden')) {
+                modal.classList.remove('hidden');
+                setTimeout(() => modal.classList.remove('opacity-0'), 10);
+            } else {
+                modal.classList.add('opacity-0');
+                setTimeout(() => modal.classList.add('hidden'), 200);
+            }
+        }
+
+        // Clear Data Demo
+        function clearDemoData() {
+            chatsData.max.forEach(c => c.messages = []);
+            chatsData.telegram.forEach(c => c.messages = []);
+            renderMessages('max');
+            renderMessages('telegram');
+            toggleSettingsModal();
+        }
+    </script>
+</body>
+</html>
